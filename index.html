@@ -347,13 +347,15 @@
       let guru = false;
       emailSaya = null;
       if (session) {
-        const { data } = await db.from("guru").select("email");
+        const { data, error } = await db.from("guru").select("email");
         guru = !!(data && data.length);
         if (guru) emailSaya = session.user.email;
-        else if (session) {
-          // Login berhasil tapi bukan guru terdaftar
+        else {
+          // Login berhasil tapi bukan guru terdaftar (atau tabel guru bermasalah)
           await db.auth.signOut();
-          setInfo("infoLogin", "Emailmu belum terdaftar sebagai guru. Minta guru lain menambahkannya.", "galat");
+          alert(error
+            ? "Login berhasil, tapi tabel guru gagal dibaca: " + error.message + "\nPastikan SQL sudah dijalankan seluruhnya."
+            : "Login berhasil, tapi email " + session.user.email + " belum ada di tabel guru. Tambahkan emailnya di tabel guru (Supabase > Table Editor) atau minta guru lain menambahkannya.");
           return;
         }
       }
@@ -453,10 +455,4 @@
           const hapus = el("button", "bahaya", "Hapus");
           hapus.type = "button";
           hapus.onclick = async () => {
-            if (!confirm("Hapus akses guru " + g.email + "?")) return;
-            const { error } = await db.from("guru").delete().eq("email", g.email);
-            if (error) setInfo("infoGuru", pesanGalat(error), "galat");
-            else muatGuru();
-          };
-          li.appendChild(hapus);
-        }
+            if (!confirm("Hapus akses guru " + g.email + "?"))
