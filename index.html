@@ -117,8 +117,9 @@ dialog button.hapus{background:transparent;color:#b42318;border-color:#b42318;pa
   </div>
   <form id="formLogin" class="form">
     <label>Email <input id="loginEmail" type="email" required autocomplete="email"></label>
+    <label id="labelNama" hidden>Nama <input id="loginNama" autocomplete="name"></label>
     <label>Password <input id="loginPass" type="password" required minlength="6" autocomplete="current-password"></label>
-    <p id="infoDaftar" class="info" hidden>Daftar hanya berhasil jika emailmu sudah ditambahkan oleh guru lain.</p>
+    <p id="infoDaftar" class="info" hidden>Setelah daftar, guru lain harus menerima permintaanmu dulu. Setelah diterima, kamu bisa masuk.</p>
     <p id="infoLogin" class="info" aria-live="polite"></p>
     <div class="baris-tombol">
       <button type="button" class="sekunder" data-tutup>Batal</button>
@@ -165,6 +166,9 @@ dialog button.hapus{background:transparent;color:#b42318;border-color:#b42318;pa
       <button type="submit" id="btnSimpanGuru">Tambah Guru</button>
     </div>
   </form>
+  <h2 style="margin-top:18px;font-size:1rem">Permintaan guru baru</h2>
+  <ul id="daftarPermintaan" class="daftar-guru"></ul>
+  <h2 style="margin-top:18px;font-size:1rem">Daftar guru</h2>
   <ul id="daftarGuru" class="daftar-guru"></ul>
 </dialog>
 
@@ -188,6 +192,7 @@ let semuaSiswa = [];
 let emailSaya = null;
 let modeDaftar = false;
 let masukSebagaiSiswa = false;
+let namaDaftar = null; // nama yang diisi saat daftar
 let nisAsli = null; // terisi saat mengedit siswa
 
 // ---------- FUNGSI BANTU ----------
@@ -379,10 +384,16 @@ async function perbaruiStatusLogin(session) {
     guru = !!(data && data.length);
     if (guru) emailSaya = session.user.email;
     else {
+      let pesan;
+      if (error) pesan = "Login berhasil, tapi tabel guru gagal dibaca: " + error.message + "\nPastikan SQL sudah dijalankan.";
+      else {
+        const { error: er } = await db.from("permintaan_guru").insert({ email: session.user.email.toLowerCase(), nama: namaDaftar });
+        pesan = er && er.code !== "23505"
+          ? "Permintaan gagal dikirim: " + er.message + "\nPastikan SQL permintaan_guru sudah dijalankan."
+          : "Permintaanmu sudah terkirim. Minta guru lain menerimamu lewat Kelola Guru, lalu masuk lagi.";
+      }
       await db.auth.signOut();
-      alert(error
-        ? "Login berhasil, tapi tabel guru gagal dibaca: " + error.message + "\nPastikan SQL sudah dijalankan."
-        : "Login berhasil, tapi email " + session.user.email + " belum ada di tabel guru. Minta guru lain menambahkannya.");
+      alert(pesan);
       return;
     }
   }
@@ -393,6 +404,7 @@ async function perbaruiStatusLogin(session) {
   $("btnTambah").hidden = !guru;
   $("btnGuru").hidden = !guru;
   $("btnKeluar").hidden = !guru;
+  if (guru) muatPermintaan();
   tampilkanSiswa(); // gambar ulang kartu supaya tombol edit/hapus muncul atau hilang
 }
 
@@ -401,6 +413,7 @@ function aturTab(daftar) {
   $("tabMasuk").classList.toggle("aktif", !daftar);
   $("tabDaftar").classList.toggle("aktif", daftar);
   $("infoDaftar").hidden = !daftar;
+  $("labelNama").hidden = !daftar;
   $("btnKirimLogin").textContent = daftar ? "Daftar" : "Masuk";
   $("loginPass").autocomplete = daftar ? "new-password" : "current-password";
   setInfo("infoLogin", "");
@@ -418,10 +431,13 @@ $("formLogin").addEventListener("submit", async (e) => {
   setInfo("infoLogin", "Memproses...");
 
   if (modeDaftar) {
+    namaDaftar = $("loginNama").value.trim() || null;
     const { data, error } = await db.auth.signUp({ email, password });
     btn.disabled = false;
     if (error) return setInfo("infoLogin", error.message, "galat");
-    if (data.session) $("dlgLogin").close();
+    if (data.user && data.user.identities && data.user.identities.length === 0)
+      return setInfo("infoLogin", "Email ini sudah punya akun. Pilih tab Masuk.", "galat");
+    if (data.session) { $("formLogin").reset(); $("dlgLogin").close(); } // permintaan dikirim otomatis
     else setInfo("infoLogin", "Berhasil. Cek emailmu dan klik link konfirmasi, lalu pilih Masuk.", "ok");
     return;
   }
@@ -458,7 +474,40 @@ async function muatGuru() {
   });
 }
 
-$("btnGuru").onclick = () => { $("dlgGuru").showModal(); muatGuru(); };
+async function muatPermintaan() {
+  const ul = $("daftarPermintaan");
+  const { data, error } = await db.from("permintaan_guru").select("email, nama").order("dibuat");
+  const n = data ? data.length : 0;
+  $("btnGuru").textContent = n ? "Kelola Guru (" + n + " permintaan)" : "Kelola Guru";
+  ul.replaceChildren();
+  if (error) { ul.appendChild(el("li", "", "Gagal memuat: " + error.message)); return; }
+  if (!n) { ul.appendChild(el("li", "", "Tidak ada permintaan.")); return; }
+  data.forEach((p) => {
+    const li = el("li");
+    li.appendChild(el("span", "", p.nama ? p.nama + " (" + p.email + ")" : p.email));
+    const aksi = el("span");
+    aksi.style.cssText = "display:flex;gap:6px;flex-shrink:0";
+    const terima = tombol("Terima", "", async () => {
+      const { error: er } = await db.from("guru").insert({ email: p.email, nama: p.nama });
+      if (er && er.code !== "23505") return setInfo("infoGuru", pesanGalat(er), "galat");
+      await db.from("permintaan_guru").delete().eq("email", p.email);
+      setInfo("infoGuru", p.email + " diterima sebagai guru. Dia bisa langsung masuk.", "ok");
+      muatGuru(); muatPermintaan();
+    });
+    terima.style.cssText = "padding:4px 10px;font-size:.8rem";
+    const tolak = tombol("Tolak", "hapus", async () => {
+      if (!confirm("Tolak permintaan " + p.email + "?")) return;
+      const { error: er } = await db.from("permintaan_guru").delete().eq("email", p.email);
+      if (er) return setInfo("infoGuru", pesanGalat(er), "galat");
+      muatPermintaan();
+    });
+    aksi.append(terima, tolak);
+    li.appendChild(aksi);
+    ul.appendChild(li);
+  });
+}
+
+$("btnGuru").onclick = () => { $("dlgGuru").showModal(); muatGuru(); muatPermintaan(); };
 
 $("formGuru").addEventListener("submit", async (e) => {
   e.preventDefault();
