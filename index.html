@@ -4,23 +4,16 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>Biodata Siswa</title>
-  
-  <!-- Font Google (boleh dihapus; kalau gagal dimuat, browser pakai font sistem) -->
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;600;800&display=swap" rel="stylesheet">
 
-  <!-- ==========================================================
-       BAGIAN 1: CSS (TAMPILAN)
-       CSS mengatur warna, ukuran, dan tata letak halaman.
-       Warna ditaruh di "variabel" (--nama) supaya mudah diganti
-       dan mendukung mode gelap.
-       ========================================================== -->
   <style>
     :root {
       --bg: #0F42C0;
       --kartu: #ffffff;
-      --teks: #97D7FF;
+      --teks: #97D7FF;          /* teks di atas latar biru */
+      --teks-kartu: #0f1b33;    /* teks di dalam kartu / form (putih) */
       --teks-redup: #5b667a;
       --garis: #d6dde8;
       --aksen: #1d4ed8;
@@ -30,6 +23,7 @@
         --bg: #0e1522;
         --kartu: #172033;
         --teks: #e8edf6;
+        --teks-kartu: #e8edf6;
         --teks-redup: #98a4ba;
         --garis: #2a3650;
         --aksen: #6c9bff;
@@ -37,223 +31,241 @@
     }
 
     * { box-sizing: border-box; }
-
     body {
-      margin: 0;
-      background: var(--bg);
-      color: var(--teks);
+      margin: 0; background: var(--bg); color: var(--teks);
       font-family: "Plus Jakarta Sans", system-ui, -apple-system, "Segoe UI", sans-serif;
       line-height: 1.5;
     }
-
     .wadah { max-width: 1100px; margin: 0 auto; padding: 24px 16px 48px; }
 
+    /* Header + tombol akun guru */
+    .atas { display: flex; justify-content: space-between; align-items: flex-start; gap: 12px; flex-wrap: wrap; }
     header h1 { margin: 0 0 4px; font-size: 1.75rem; font-weight: 800; }
-    header p  { margin: 0; color: var(--teks-redup); }
+    header p  { margin: 0; color: var(--teks); opacity: .85; }
+    .akun { display: flex; gap: 8px; align-items: center; flex-wrap: wrap; }
+    .akun .email { font-size: .85rem; opacity: .9; }
 
-    /* Kolom pencarian dan filter */
+    button, .tombol {
+      font: inherit; font-weight: 600; cursor: pointer;
+      border-radius: 10px; padding: 9px 14px;
+      border: 1px solid transparent;
+      background: #fff; color: #0F42C0;
+    }
+    button.sekunder { background: transparent; color: inherit; border-color: currentColor; }
+    button.bahaya { background: transparent; color: #b42318; border-color: #b42318; padding: 4px 10px; font-size: .8rem; }
+    button:disabled { opacity: .6; cursor: wait; }
+    button:focus-visible { outline: 2px solid #fff; outline-offset: 2px; }
+    [hidden] { display: none !important; }
+
     .kontrol { display: flex; gap: 10px; flex-wrap: wrap; margin: 20px 0 8px; }
     .kontrol input, .kontrol select {
-      font: inherit;
-      color: var(--teks);
-      background: var(--kartu);
-      border: 1px solid var(--garis);
-      border-radius: 10px;
-      padding: 10px 12px;
+      font: inherit; color: var(--teks-kartu); background: var(--kartu);
+      border: 1px solid var(--garis); border-radius: 10px; padding: 10px 12px;
     }
     .kontrol input  { flex: 1 1 220px; }
     .kontrol select { flex: 0 1 160px; }
-    .kontrol input:focus-visible, .kontrol select:focus-visible {
-      outline: 2px solid var(--aksen);
-      outline-offset: 1px;
-    }
 
-    .jumlah { color: var(--teks-redup); font-size: 0.9rem; margin: 0 0 16px; }
+    .jumlah { color: var(--teks); opacity: .85; font-size: .9rem; margin: 0 0 16px; }
 
-    /* Susunan kartu: otomatis menyesuaikan lebar layar (HP = 1 kolom) */
-    .daftar {
-      display: grid;
-      grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
-      gap: 16px;
-    }
-
-    /* Kartu dibuat mirip kartu pelajar: pita warna di atas, foto bulat menimpa pita */
+    .daftar { display: grid; grid-template-columns: repeat(auto-fill, minmax(250px, 1fr)); gap: 16px; }
     .kartu {
-      background: var(--kartu);
-      border: 1px solid var(--garis);
-      border-radius: 14px;
-      overflow: hidden;
+      background: var(--kartu); color: var(--teks-kartu);
+      border: 1px solid var(--garis); border-radius: 14px; overflow: hidden;
     }
     .pita { height: 56px; background: hsl(var(--hue) 65% 45%); }
     .isi  { padding: 0 16px 16px; text-align: center; }
-
     .foto {
-      width: 76px; height: 76px;
-      margin: -38px auto 8px;
-      border-radius: 50%;
+      width: 76px; height: 76px; margin: -38px auto 8px; border-radius: 50%;
       border: 4px solid var(--kartu);
-      background: hsl(var(--hue) 55% 88%);
-      color: hsl(var(--hue) 65% 28%);
-      display: grid; place-items: center;
-      font-weight: 800; font-size: 1.5rem;
-      overflow: hidden;
+      background: hsl(var(--hue) 55% 88%); color: hsl(var(--hue) 65% 28%);
+      display: grid; place-items: center; font-weight: 800; font-size: 1.5rem; overflow: hidden;
     }
     .foto img { width: 100%; height: 100%; object-fit: cover; }
-
     .nama { margin: 0; font-size: 1.05rem; font-weight: 800; }
-    .nis  { margin: 0 0 12px; color: var(--teks-redup); font-size: 0.85rem; }
-
-    .rincian { margin: 0; text-align: left; font-size: 0.9rem; }
-    .rincian div {
-      display: flex; justify-content: space-between; gap: 12px;
-      padding: 6px 0; border-top: 1px solid var(--garis);
-    }
+    .nis  { margin: 0 0 12px; color: var(--teks-redup); font-size: .85rem; }
+    .rincian { margin: 0; text-align: left; font-size: .9rem; }
+    .rincian div { display: flex; justify-content: space-between; gap: 12px; padding: 6px 0; border-top: 1px solid var(--garis); }
     .rincian dt { color: var(--teks-redup); }
     .rincian dd { margin: 0; font-weight: 600; text-align: right; }
 
-    /* Pesan status: memuat, kosong, galat */
-    .pesan {
-      grid-column: 1 / -1;
-      text-align: center;
-      padding: 40px 16px;
-      color: var(--teks-redup);
+    .pesan { grid-column: 1 / -1; text-align: center; padding: 40px 16px; color: var(--teks); }
+    .pesan.galat { color: #ffb4ab; }
+
+    /* Jendela pop-up (login, tambah siswa, kelola guru) */
+    dialog {
+      width: min(440px, calc(100% - 24px)); max-height: calc(100% - 24px); overflow: auto;
+      background: var(--kartu); color: var(--teks-kartu);
+      border: 1px solid var(--garis); border-radius: 14px; padding: 20px;
     }
-    .pesan.galat { color: #b42318; }
-    @media (prefers-color-scheme: dark) { .pesan.galat { color: #ff8b80; } }
+    dialog::backdrop { background: rgba(0, 0, 0, .55); }
+    dialog h2 { margin: 0 0 12px; font-size: 1.2rem; }
+    .form { display: grid; gap: 10px; }
+    .form label { display: grid; gap: 4px; font-size: .85rem; color: var(--teks-redup); font-weight: 600; }
+    .form input, .form select {
+      font: inherit; color: var(--teks-kartu); background: transparent;
+      border: 1px solid var(--garis); border-radius: 8px; padding: 9px 10px;
+    }
+    .form input:focus-visible, .form select:focus-visible { outline: 2px solid var(--aksen); outline-offset: 1px; }
+    .baris-tombol { display: flex; gap: 8px; justify-content: flex-end; margin-top: 6px; }
+    dialog button { background: var(--aksen); color: #fff; }
+    dialog button.sekunder { background: transparent; color: var(--teks-kartu); border-color: var(--garis); }
+    .info { font-size: .85rem; min-height: 1.2em; margin: 0; color: var(--teks-redup); }
+    .info.galat { color: #b42318; }
+    @media (prefers-color-scheme: dark) { .info.galat { color: #ff8b80; } }
+    .info.ok { color: #0a7a3d; }
+    .tab { display: flex; gap: 6px; margin-bottom: 12px; }
+    .tab button { flex: 1; background: transparent; color: var(--teks-kartu); border-color: var(--garis); }
+    .tab button.aktif { background: var(--aksen); color: #fff; border-color: var(--aksen); }
+    .daftar-guru { list-style: none; margin: 12px 0 0; padding: 0; }
+    .daftar-guru li { display: flex; justify-content: space-between; align-items: center; gap: 8px; padding: 8px 0; border-top: 1px solid var(--garis); font-size: .9rem; word-break: break-all; }
   </style>
 </head>
 
 <body>
-  <!-- ==========================================================
-       BAGIAN 2: HTML (KERANGKA HALAMAN)
-       Hanya berisi kerangka kosong. Kartu siswa akan diisi
-       oleh JavaScript setelah data diambil dari Supabase.
-       ========================================================== -->
   <div class="wadah">
-    <header>
-      <h1>Biodata Siswa</h1>
-      <p>Cari siswa berdasarkan nama atau NIS.</p>
-    </header>
+    <div class="atas">
+      <header>
+        <h1>Biodata Siswa</h1>
+        <p>Cari siswa berdasarkan nama atau NIS.</p>
+      </header>
+
+      <!-- Tombol ini berubah sesuai status login -->
+      <div class="akun">
+        <button id="btnLogin" type="button">Login Guru</button>
+        <span id="emailGuru" class="email" hidden></span>
+        <button id="btnTambah" type="button" hidden>+ Tambah Siswa</button>
+        <button id="btnGuru" type="button" class="sekunder" hidden>Kelola Guru</button>
+        <button id="btnKeluar" type="button" class="sekunder" hidden>Keluar</button>
+      </div>
+    </div>
 
     <div class="kontrol">
       <input id="cari" type="search" placeholder="Cari nama atau NIS" aria-label="Cari nama atau NIS">
-      <select id="filterKelas" aria-label="Filter kelas">
-        <option value="">Semua kelas</option>
-      </select>
+      <select id="filterKelas" aria-label="Filter kelas"><option value="">Semua kelas</option></select>
     </div>
 
     <p id="jumlah" class="jumlah" aria-live="polite"></p>
     <main id="daftar" class="daftar"></main>
   </div>
 
-  <!-- Library Supabase dari CDN (versi dikunci supaya tidak berubah tiba-tiba) -->
+  <!-- ===== POP-UP LOGIN / DAFTAR GURU ===== -->
+  <dialog id="dlgLogin">
+    <h2>Akun Guru</h2>
+    <div class="tab">
+      <button type="button" id="tabMasuk" class="aktif">Masuk</button>
+      <button type="button" id="tabDaftar">Daftar</button>
+    </div>
+    <form id="formLogin" class="form">
+      <label>Email <input id="loginEmail" type="email" required autocomplete="email"></label>
+      <label>Password <input id="loginPass" type="password" required minlength="6" autocomplete="current-password"></label>
+      <p id="infoDaftar" class="info" hidden>Daftar hanya berhasil jika emailmu sudah ditambahkan oleh guru lain. Setelah daftar, cek email untuk konfirmasi.</p>
+      <p id="infoLogin" class="info" aria-live="polite"></p>
+      <div class="baris-tombol">
+        <button type="button" class="sekunder" data-tutup>Batal</button>
+        <button type="submit" id="btnKirimLogin">Masuk</button>
+      </div>
+    </form>
+  </dialog>
+
+  <!-- ===== POP-UP TAMBAH SISWA ===== -->
+  <dialog id="dlgSiswa">
+    <h2>Tambah Siswa</h2>
+    <form id="formSiswa" class="form">
+      <label>NIS <input name="nis" required></label>
+      <label>Nama lengkap <input name="nama" required></label>
+      <label>Kelas <input name="kelas" required placeholder="contoh: X-A"></label>
+      <label>Jenis kelamin
+        <select name="jenis_kelamin">
+          <option value="">(kosongkan)</option>
+          <option>Laki-laki</option>
+          <option>Perempuan</option>
+        </select>
+      </label>
+      <label>Tanggal lahir <input name="tanggal_lahir" type="date"></label>
+      <label>Alamat <input name="alamat"></label>
+      <label>URL foto (opsional) <input name="foto_url" type="url" placeholder="https://..."></label>
+      <p id="infoSiswa" class="info" aria-live="polite"></p>
+      <div class="baris-tombol">
+        <button type="button" class="sekunder" data-tutup>Tutup</button>
+        <button type="submit" id="btnSimpanSiswa">Simpan</button>
+      </div>
+    </form>
+  </dialog>
+
+  <!-- ===== POP-UP KELOLA GURU ===== -->
+  <dialog id="dlgGuru">
+    <h2>Kelola Guru</h2>
+    <form id="formGuru" class="form">
+      <label>Email guru baru <input id="guruEmail" type="email" required></label>
+      <label>Nama (opsional) <input id="guruNama"></label>
+      <p id="infoGuru" class="info" aria-live="polite">Setelah ditambahkan, guru itu daftar lewat tombol Login Guru > Daftar memakai email yang sama.</p>
+      <div class="baris-tombol">
+        <button type="button" class="sekunder" data-tutup>Tutup</button>
+        <button type="submit" id="btnSimpanGuru">Tambah Guru</button>
+      </div>
+    </form>
+    <ul id="daftarGuru" class="daftar-guru"></ul>
+  </dialog>
+
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.js"></script>
 
-  <!-- ==========================================================
-       BAGIAN 3: JAVASCRIPT (LOGIKA)
-       Alurnya:
-         1. Hubungkan ke Supabase
-         2. Ambil data siswa
-         3. Gambar kartu di halaman
-         4. Perbarui kartu saat pengunjung mencari / memfilter
-       ========================================================== -->
   <script>
-    // ---------- LANGKAH 1: PENGATURAN ----------
-    // Ganti dua nilai ini dengan milik projectmu
-    // (Supabase > Settings > API > Project URL dan anon key).
-    // Anon key AMAN ditaruh di sini karena yang melindungi data
-    // adalah aturan RLS di Supabase, bukan kerahasiaan key ini.
-    // JANGAN PERNAH menaruh "service_role key" di file ini.
+    // ---------- PENGATURAN ----------
     const SUPABASE_URL = "https://edmksrpvyufbmwnkegpb.supabase.co";
     const SUPABASE_ANON_KEY = "sb_publishable_KfiAOrOzJRQRpK4ZiaUAdA_WpszurXb";
 
-    // Pilih data pribadi mana yang boleh tampil di website publik.
-    // true = tampil, false = disembunyikan.
-    const TAMPILKAN = {
-      jenisKelamin: true,
-      tanggalLahir: false,
-      alamat: false
-    };
+    const TAMPILKAN = { jenisKelamin: true, tanggalLahir: false, alamat: false };
 
-    // ---------- LANGKAH 2: HUBUNGKAN KE SUPABASE ----------
     const db = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
-    // Ambil elemen HTML yang akan kita isi / baca
-    const elDaftar = document.getElementById("daftar");
-    const elJumlah = document.getElementById("jumlah");
-    const elCari = document.getElementById("cari");
-    const elKelas = document.getElementById("filterKelas");
+    const $ = (id) => document.getElementById(id);
+    const elDaftar = $("daftar"), elJumlah = $("jumlah"), elCari = $("cari"), elKelas = $("filterKelas");
 
-    // Tempat menyimpan seluruh data siswa setelah diambil
     let semuaSiswa = [];
+    let emailSaya = null;   // email guru yang sedang login
+    let modeDaftar = false; // false = tab Masuk, true = tab Daftar
 
-    // ---------- LANGKAH 3: AMBIL DATA ----------
+    // ---------- DATA SISWA ----------
     async function muatData() {
       tampilkanPesan("Memuat data siswa...");
-
-      // Sama artinya dengan SQL:
-      // SELECT nis, nama, ... FROM siswa ORDER BY nama
       const { data, error } = await db
         .from("siswa")
         .select("nis, nama, kelas, jenis_kelamin, tanggal_lahir, alamat, foto_url")
         .order("nama");
-
       if (error) {
         console.error(error);
-        tampilkanPesan(
-          "Data tidak bisa dimuat. Periksa URL dan anon key, nama tabel, serta policy RLS di Supabase.",
-          true
-        );
+        tampilkanPesan("Data tidak bisa dimuat. Periksa URL dan anon key, nama tabel, serta policy RLS di Supabase.", true);
         return;
       }
-
       semuaSiswa = data;
       isiPilihanKelas();
       tampilkanSiswa();
     }
 
-    // ---------- LANGKAH 4: TAMPILKAN KARTU ----------
     function tampilkanSiswa() {
       const kataKunci = elCari.value.trim().toLowerCase();
       const kelasDipilih = elKelas.value;
-
-      // filter() menyaring data sesuai pencarian dan kelas
       const hasil = semuaSiswa.filter((s) => {
         const cocokKelas = !kelasDipilih || s.kelas === kelasDipilih;
-        const cocokCari =
-          !kataKunci ||
-          s.nama.toLowerCase().includes(kataKunci) ||
-          s.nis.toLowerCase().includes(kataKunci);
+        const cocokCari = !kataKunci || s.nama.toLowerCase().includes(kataKunci) || s.nis.toLowerCase().includes(kataKunci);
         return cocokKelas && cocokCari;
       });
-
       elJumlah.textContent = hasil.length + " dari " + semuaSiswa.length + " siswa";
-      elDaftar.replaceChildren(); // kosongkan daftar lama
-
+      elDaftar.replaceChildren();
       if (hasil.length === 0) {
-        tampilkanPesan(
-          semuaSiswa.length === 0
-            ? "Belum ada data siswa. Tambahkan data lewat Table Editor di Supabase."
-            : "Tidak ada siswa yang cocok. Coba kata kunci atau kelas lain."
-        );
+        tampilkanPesan(semuaSiswa.length === 0
+          ? "Belum ada data siswa. Guru bisa menambahkannya lewat tombol Tambah Siswa."
+          : "Tidak ada siswa yang cocok. Coba kata kunci atau kelas lain.");
         return;
       }
-
       hasil.forEach((s) => elDaftar.appendChild(buatKartu(s)));
     }
 
-    // Membuat satu kartu dari satu baris data siswa.
-    // Kita pakai textContent (bukan innerHTML) supaya teks dari database
-    // tidak bisa menyisipkan kode berbahaya (serangan XSS).
     function buatKartu(s) {
       const kartu = el("article", "kartu");
       kartu.style.setProperty("--hue", warnaKelas(s.kelas));
-
       kartu.appendChild(el("div", "pita"));
-
       const isi = el("div", "isi");
-
-      // Foto: pakai foto_url kalau ada, kalau tidak ada tampilkan inisial nama
       const foto = el("div", "foto");
       if (s.foto_url) {
         const gambar = document.createElement("img");
@@ -266,80 +278,185 @@
         foto.textContent = inisial(s.nama);
       }
       isi.appendChild(foto);
-
       isi.appendChild(el("h2", "nama", s.nama));
       isi.appendChild(el("p", "nis", "NIS " + s.nis));
-
-      // Daftar rincian (hanya baris yang ada isinya dan diizinkan tampil)
       const rincian = el("dl", "rincian");
       tambahBaris(rincian, "Kelas", s.kelas);
       if (TAMPILKAN.jenisKelamin) tambahBaris(rincian, "Jenis kelamin", s.jenis_kelamin);
       if (TAMPILKAN.tanggalLahir) tambahBaris(rincian, "Tanggal lahir", formatTanggal(s.tanggal_lahir));
       if (TAMPILKAN.alamat) tambahBaris(rincian, "Alamat", s.alamat);
       isi.appendChild(rincian);
-
       kartu.appendChild(isi);
       return kartu;
     }
 
     // ---------- FUNGSI BANTU ----------
-    // Membuat elemen HTML dengan kelas dan teks (singkat dan rapi)
     function el(tag, kelas, teks) {
       const e = document.createElement(tag);
       if (kelas) e.className = kelas;
       if (teks) e.textContent = teks;
       return e;
     }
-
     function tambahBaris(dl, label, nilai) {
-      if (!nilai) return; // lewati kalau datanya kosong
+      if (!nilai) return;
       const baris = el("div");
       baris.appendChild(el("dt", "", label));
       baris.appendChild(el("dd", "", nilai));
       dl.appendChild(baris);
     }
-
-    // "Budi Santoso" -> "BS"
     function inisial(nama) {
-      return nama.split(" ").filter(Boolean).slice(0, 2)
-        .map((k) => k[0].toUpperCase()).join("");
+      return nama.split(" ").filter(Boolean).slice(0, 2).map((k) => k[0].toUpperCase()).join("");
     }
-
-    // Setiap kelas mendapat warna sendiri secara otomatis dari namanya
     function warnaKelas(kelas) {
       let total = 0;
       for (const huruf of kelas || "") total += huruf.charCodeAt(0);
       return (total * 47) % 360;
     }
-
-    // "2010-05-17" -> "17 Mei 2010"
     function formatTanggal(teks) {
       if (!teks) return "";
-      return new Date(teks + "T00:00:00").toLocaleDateString("id-ID", {
-        day: "numeric", month: "long", year: "numeric"
-      });
+      return new Date(teks + "T00:00:00").toLocaleDateString("id-ID", { day: "numeric", month: "long", year: "numeric" });
     }
-
     function tampilkanPesan(teks, galat) {
       elDaftar.replaceChildren(el("p", "pesan" + (galat ? " galat" : ""), teks));
     }
-
-    // Isi pilihan filter kelas dari data yang ada (tanpa duplikat)
     function isiPilihanKelas() {
-      const daftarKelas = [...new Set(semuaSiswa.map((s) => s.kelas).filter(Boolean))].sort();
-      daftarKelas.forEach((k) => {
+      const dipilih = elKelas.value;
+      elKelas.replaceChildren(Object.assign(el("option", "", "Semua kelas"), { value: "" }));
+      [...new Set(semuaSiswa.map((s) => s.kelas).filter(Boolean))].sort().forEach((k) => {
         const opsi = el("option", "", k);
         opsi.value = k;
         elKelas.appendChild(opsi);
       });
+      elKelas.value = dipilih;
+    }
+    function setInfo(id, teks, jenis) {
+      const e = $(id);
+      e.textContent = teks;
+      e.className = "info" + (jenis ? " " + jenis : "");
+    }
+    function pesanGalat(error) {
+      if (error.code === "23505") return "Data sudah ada (NIS atau email yang sama).";
+      if (error.code === "42501" || /row-level security/i.test(error.message)) return "Kamu tidak punya izin. Pastikan emailmu terdaftar sebagai guru.";
+      return error.message;
     }
 
-    // ---------- JALANKAN ----------
-    // Setiap kali pengunjung mengetik atau mengganti kelas, kartu diperbarui
-    elCari.addEventListener("input", tampilkanSiswa);
-    elKelas.addEventListener("change", tampilkanSiswa);
+    // ---------- LOGIN GURU ----------
+    // Cek apakah email yang login terdaftar di tabel "guru".
+    // Policy RLS hanya mengizinkan guru membaca tabel itu, jadi hasil kosong = bukan guru.
+    async function perbaruiStatusLogin(session) {
+      let guru = false;
+      emailSaya = null;
+      if (session) {
+        const { data } = await db.from("guru").select("email");
+        guru = !!(data && data.length);
+        if (guru) emailSaya = session.user.email;
+        else if (session) {
+          // Login berhasil tapi bukan guru terdaftar
+          await db.auth.signOut();
+          setInfo("infoLogin", "Emailmu belum terdaftar sebagai guru. Minta guru lain menambahkannya.", "galat");
+          return;
+        }
+      }
+      $("btnLogin").hidden = guru;
+      $("emailGuru").hidden = !guru;
+      $("emailGuru").textContent = emailSaya || "";
+      $("btnTambah").hidden = !guru;
+      $("btnGuru").hidden = !guru;
+      $("btnKeluar").hidden = !guru;
+    }
 
-    muatData();
-  </script>
-</body>
-    </html>
+    function aturTab(daftar) {
+      modeDaftar = daftar;
+      $("tabMasuk").classList.toggle("aktif", !daftar);
+      $("tabDaftar").classList.toggle("aktif", daftar);
+      $("infoDaftar").hidden = !daftar;
+      $("btnKirimLogin").textContent = daftar ? "Daftar" : "Masuk";
+      $("loginPass").autocomplete = daftar ? "new-password" : "current-password";
+      setInfo("infoLogin", "");
+    }
+
+    $("btnLogin").onclick = () => { aturTab(false); $("dlgLogin").showModal(); };
+    $("tabMasuk").onclick = () => aturTab(false);
+    $("tabDaftar").onclick = () => aturTab(true);
+
+    $("formLogin").addEventListener("submit", async (e) => {
+      e.preventDefault();
+      const email = $("loginEmail").value.trim().toLowerCase();
+      const password = $("loginPass").value;
+      const tombol = $("btnKirimLogin");
+      tombol.disabled = true;
+      setInfo("infoLogin", "Memproses...");
+
+      if (modeDaftar) {
+        const { data, error } = await db.auth.signUp({ email, password });
+        tombol.disabled = false;
+        if (error) return setInfo("infoLogin", error.message, "galat");
+        if (data.session) { $("dlgLogin").close(); }
+        else setInfo("infoLogin", "Berhasil. Cek emailmu dan klik link konfirmasi, lalu kembali dan pilih Masuk.", "ok");
+        return;
+      }
+
+      const { error } = await db.auth.signInWithPassword({ email, password });
+      tombol.disabled = false;
+      if (error) return setInfo("infoLogin", "Email atau password salah (atau email belum dikonfirmasi).", "galat");
+      $("formLogin").reset();
+      $("dlgLogin").close();
+    });
+
+    $("btnKeluar").onclick = () => db.auth.signOut();
+
+    db.auth.onAuthStateChange((_event, session) => {
+      // setTimeout menghindari kunci internal Supabase saat memanggil query di dalam callback
+      setTimeout(() => perbaruiStatusLogin(session), 0);
+    });
+
+    // ---------- TAMBAH SISWA ----------
+    $("btnTambah").onclick = () => { setInfo("infoSiswa", ""); $("dlgSiswa").showModal(); };
+
+    $("formSiswa").addEventListener("submit", async (e) => {
+      e.preventDefault();
+      const f = new FormData(e.target);
+      const baris = {
+        nis: f.get("nis").trim(),
+        nama: f.get("nama").trim(),
+        kelas: f.get("kelas").trim(),
+        jenis_kelamin: f.get("jenis_kelamin") || null,
+        tanggal_lahir: f.get("tanggal_lahir") || null,
+        alamat: f.get("alamat").trim() || null,
+        foto_url: f.get("foto_url").trim() || null
+      };
+      const tombol = $("btnSimpanSiswa");
+      tombol.disabled = true;
+      setInfo("infoSiswa", "Menyimpan...");
+      const { error } = await db.from("siswa").insert(baris);
+      tombol.disabled = false;
+      if (error) return setInfo("infoSiswa", pesanGalat(error), "galat");
+
+      semuaSiswa.push(baris);
+      semuaSiswa.sort((a, b) => a.nama.localeCompare(b.nama, "id"));
+      isiPilihanKelas();
+      tampilkanSiswa();
+      e.target.reset();
+      setInfo("infoSiswa", "Siswa " + baris.nama + " berhasil ditambahkan. Silakan isi siswa berikutnya.", "ok");
+    });
+
+    // ---------- KELOLA GURU ----------
+    async function muatGuru() {
+      const ul = $("daftarGuru");
+      ul.replaceChildren();
+      const { data, error } = await db.from("guru").select("email, nama").order("email");
+      if (error) return setInfo("infoGuru", pesanGalat(error), "galat");
+      data.forEach((g) => {
+        const li = el("li");
+        li.appendChild(el("span", "", g.nama ? g.nama + " (" + g.email + ")" : g.email));
+        if (g.email.toLowerCase() !== (emailSaya || "").toLowerCase()) {
+          const hapus = el("button", "bahaya", "Hapus");
+          hapus.type = "button";
+          hapus.onclick = async () => {
+            if (!confirm("Hapus akses guru " + g.email + "?")) return;
+            const { error } = await db.from("guru").delete().eq("email", g.email);
+            if (error) setInfo("infoGuru", pesanGalat(error), "galat");
+            else muatGuru();
+          };
+          li.appendChild(hapus);
+        }
