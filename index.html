@@ -12,8 +12,8 @@
     :root {
       --bg: #0F42C0;
       --kartu: #ffffff;
-      --teks: #97D7FF;          /* teks di atas latar biru */
-      --teks-kartu: #0f1b33;    /* teks di dalam kartu / form (putih) */
+      --teks: #97D7FF;
+      --teks-kartu: #0f1b33;
       --teks-redup: #5b667a;
       --garis: #d6dde8;
       --aksen: #1d4ed8;
@@ -38,7 +38,6 @@
     }
     .wadah { max-width: 1100px; margin: 0 auto; padding: 24px 16px 48px; }
 
-    /* Header + tombol akun guru */
     .atas { display: flex; justify-content: space-between; align-items: flex-start; gap: 12px; flex-wrap: wrap; }
     header h1 { margin: 0 0 4px; font-size: 1.75rem; font-weight: 800; }
     header p  { margin: 0; color: var(--teks); opacity: .85; }
@@ -56,6 +55,16 @@
     button:disabled { opacity: .6; cursor: wait; }
     button:focus-visible { outline: 2px solid #fff; outline-offset: 2px; }
     [hidden] { display: none !important; }
+
+    /* Layar pilihan Guru / Siswa */
+    .gerbang {
+      position: fixed; inset: 0; z-index: 10; background: var(--bg);
+      display: grid; place-items: center; padding: 16px; text-align: center;
+    }
+    .gerbang-kotak { display: grid; gap: 12px; width: min(320px, 100%); }
+    .gerbang-kotak h1 { margin: 0; font-size: 1.75rem; font-weight: 800; }
+    .gerbang-kotak p { margin: 0 0 8px; opacity: .85; }
+    .gerbang-kotak button { padding: 14px; font-size: 1rem; }
 
     .kontrol { display: flex; gap: 10px; flex-wrap: wrap; margin: 20px 0 8px; }
     .kontrol input, .kontrol select {
@@ -91,7 +100,6 @@
     .pesan { grid-column: 1 / -1; text-align: center; padding: 40px 16px; color: var(--teks); }
     .pesan.galat { color: #ffb4ab; }
 
-    /* Jendela pop-up (login, tambah siswa, kelola guru) */
     dialog {
       width: min(440px, calc(100% - 24px)); max-height: calc(100% - 24px); overflow: auto;
       background: var(--kartu); color: var(--teks-kartu);
@@ -109,6 +117,7 @@
     .baris-tombol { display: flex; gap: 8px; justify-content: flex-end; margin-top: 6px; }
     dialog button { background: var(--aksen); color: #fff; }
     dialog button.sekunder { background: transparent; color: var(--teks-kartu); border-color: var(--garis); }
+    dialog button.bahaya { background: transparent; color: #b42318; border-color: #b42318; }
     .info { font-size: .85rem; min-height: 1.2em; margin: 0; color: var(--teks-redup); }
     .info.galat { color: #b42318; }
     @media (prefers-color-scheme: dark) { .info.galat { color: #ff8b80; } }
@@ -122,6 +131,16 @@
 </head>
 
 <body>
+  <!-- ===== LAYAR PILIHAN GURU / SISWA ===== -->
+  <div id="gerbang" class="gerbang">
+    <div class="gerbang-kotak">
+      <h1>Biodata Siswa</h1>
+      <p>Masuk sebagai siapa?</p>
+      <button id="pilihGuru" type="button">Saya Guru (login)</button>
+      <button id="pilihSiswa" type="button" class="sekunder">Saya Siswa (langsung masuk)</button>
+    </div>
+  </div>
+
   <div class="wadah">
     <div class="atas">
       <header>
@@ -129,7 +148,6 @@
         <p>Cari siswa berdasarkan nama atau NIS.</p>
       </header>
 
-      <!-- Tombol ini berubah sesuai status login -->
       <div class="akun">
         <button id="btnLogin" type="button">Login Guru</button>
         <span id="emailGuru" class="email" hidden></span>
@@ -222,8 +240,9 @@
     const elDaftar = $("daftar"), elJumlah = $("jumlah"), elCari = $("cari"), elKelas = $("filterKelas");
 
     let semuaSiswa = [];
-    let emailSaya = null;   // email guru yang sedang login
-    let modeDaftar = false; // false = tab Masuk, true = tab Daftar
+    let emailSaya = null;
+    let modeDaftar = false;
+    let masukSebagaiSiswa = false;
 
     // ---------- DATA SISWA ----------
     async function muatData() {
@@ -340,9 +359,11 @@
       return error.message;
     }
 
+    // ---------- PILIHAN GURU / SISWA ----------
+    $("pilihSiswa").onclick = () => { masukSebagaiSiswa = true; $("gerbang").hidden = true; };
+    $("pilihGuru").onclick = () => { aturTab(false); $("dlgLogin").showModal(); };
+
     // ---------- LOGIN GURU ----------
-    // Cek apakah email yang login terdaftar di tabel "guru".
-    // Policy RLS hanya mengizinkan guru membaca tabel itu, jadi hasil kosong = bukan guru.
     async function perbaruiStatusLogin(session) {
       let guru = false;
       emailSaya = null;
@@ -351,7 +372,6 @@
         guru = !!(data && data.length);
         if (guru) emailSaya = session.user.email;
         else {
-          // Login berhasil tapi bukan guru terdaftar (atau tabel guru bermasalah)
           await db.auth.signOut();
           alert(error
             ? "Login berhasil, tapi tabel guru gagal dibaca: " + error.message + "\nPastikan SQL sudah dijalankan seluruhnya."
@@ -359,6 +379,7 @@
           return;
         }
       }
+      $("gerbang").hidden = guru || masukSebagaiSiswa;
       $("btnLogin").hidden = guru;
       $("emailGuru").hidden = !guru;
       $("emailGuru").textContent = emailSaya || "";
@@ -405,10 +426,9 @@
       $("dlgLogin").close();
     });
 
-    $("btnKeluar").onclick = () => db.auth.signOut();
+    $("btnKeluar").onclick = () => { masukSebagaiSiswa = false; db.auth.signOut(); };
 
     db.auth.onAuthStateChange((_event, session) => {
-      // setTimeout menghindari kunci internal Supabase saat memanggil query di dalam callback
       setTimeout(() => perbaruiStatusLogin(session), 0);
     });
 
@@ -455,4 +475,41 @@
           const hapus = el("button", "bahaya", "Hapus");
           hapus.type = "button";
           hapus.onclick = async () => {
-            if (!confirm("Hapus akses guru " + g.email + "?"))
+            if (!confirm("Hapus akses guru " + g.email + "?")) return;
+            const { error } = await db.from("guru").delete().eq("email", g.email);
+            if (error) return setInfo("infoGuru", pesanGalat(error), "galat");
+            muatGuru();
+          };
+          li.appendChild(hapus);
+        }
+        ul.appendChild(li);
+      });
+    }
+
+    $("btnGuru").onclick = () => { $("dlgGuru").showModal(); muatGuru(); };
+
+    $("formGuru").addEventListener("submit", async (e) => {
+      e.preventDefault();
+      const email = $("guruEmail").value.trim().toLowerCase();
+      const nama = $("guruNama").value.trim() || null;
+      const tombol = $("btnSimpanGuru");
+      tombol.disabled = true;
+      const { error } = await db.from("guru").insert({ email, nama });
+      tombol.disabled = false;
+      if (error) return setInfo("infoGuru", pesanGalat(error), "galat");
+      e.target.reset();
+      setInfo("infoGuru", "Guru " + email + " ditambahkan. Minta dia daftar lewat Login Guru > Daftar.", "ok");
+      muatGuru();
+    });
+
+    // ---------- TUTUP POP-UP & PENCARIAN ----------
+    document.querySelectorAll("[data-tutup]").forEach((b) => {
+      b.addEventListener("click", () => b.closest("dialog").close());
+    });
+    elCari.addEventListener("input", tampilkanSiswa);
+    elKelas.addEventListener("change", tampilkanSiswa);
+
+    muatData();
+  </script>
+</body>
+</html>
